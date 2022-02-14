@@ -10,23 +10,28 @@ export const req = async ({ url, parser = "text", method = "GET", payload, timeo
             method,
             signal: ac.signal,
             ...headers && { headers },
-            ...payload && { body: JSON.stringify(payload) }
+            ...payload && { body: JSON.stringify(payload) },
         })
 
         const res = await req[parser]();
-        return { ...parser === "text" ? { text: res }: { ...res }, elapsed: elapsed() }
+        return {
+            ...parser === "text" ? { text: res } : { ...res },
+            elapsed: elapsed(),
+            status: req.status || 200
+        }
     } catch (error) {
         if (error.message === "The operation was aborted") {
             return {
                 error: "Request timed out",
                 method,
                 url,
+                status: 500,
                 stack: new Error().stack,
                 configuredTimeout: timeout,
                 elapsed: elapsed()
             }
         }
-        return { error: error.message, stack: error.stack }
+        return { error: error.message, stack: error.stack, status: 500 }
     } finally {
         clearTimeout(timeoutRequest);
     }
