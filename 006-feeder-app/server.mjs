@@ -31,6 +31,7 @@ const server = createServer((req, res) => {
         }
         const path = resolve(resolve(), `data${url}.json`);
         switch (url) {
+            case "/verbose":
             case "/logins":
             case "/pictures":
             case "/users":

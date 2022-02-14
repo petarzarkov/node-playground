@@ -2,7 +2,7 @@ const menu = document.getElementById('menu-container');
 const header = document.getElementById("header1");
 const content = document.getElementById('content');
 const store = {};
-const routes = ["logins", "users", "pictures"]
+const routes = ["logins", "users", "pictures", "verbose"]
 
 function addSubItem(parent, data, key) {
     try {
@@ -15,7 +15,10 @@ function addSubItem(parent, data, key) {
             if (key === "pictures" && typeof(sip[1]) === "string" && sip[1].startsWith("http")) {
                 return `<img src=${sip[1]} style="cursor: pointer;">`;
             }
-            return `<p>${sip[0]}: ${sip[1]}</p>`;
+            if (key === "verbose" && typeof(sip[1]) === "object" && sip[0] === "picture") {
+                return Object.entries(data["picture"]).map(pc => `<img src=${pc[1]} style="cursor: pointer;">`).join().replace(/,/g, "");
+            }
+            return `<p>${sip[0]}: ${typeof(sip[1]) === "object" ? JSON.stringify(sip[1]) : sip[1]}</p>`;
         }).join().replace(/,/g, "");
 
         contentSubItem.appendChild(s);
