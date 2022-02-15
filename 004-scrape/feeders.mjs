@@ -22,19 +22,15 @@ export class Feeders {
         this.includeExtra = includeExtra;
     }
 
-    defaultParser = (data) => (data?.results?.[0].info ? { info: data?.results?.[0].info } : data)
-
     initFeed = async (request) => {
         const res = await req(request);
         const feedData = {
-            ...res && request.customParser ? request.customParser(res) : this.defaultParser(res),
+            data: res.status !== 500 && request.customParser ? request.customParser(res) : res,
             sizeToKeep: request.sizeToKeep || this.sizeToKeep,
             feedName: request.feedName,
-            ...this.includeExtra && {
-                elapsed: res.elapsed,
-                status: res.status,
-                date: new Date().toLocaleString()
-            }
+            elapsed: res.elapsed,
+            status: res.status,
+            date: new Date().toLocaleString()
         }
         this.responses.set(request.feedName, feedData);
 
@@ -71,33 +67,50 @@ export class Feeders {
         throw new Error("requests is empty!");
     }
 
-    parseFeederData = (data) => {
-        return data.map(async feederData => {
-            const path = this.dataPaths && this.dataPaths instanceof Array ? resolve(...this.dataPaths, `${feederData.feedName}.json`) : resolve(`${feederData.feedName}.json`);
-            const toKeep = feederData.sizeToKeep;
-            if (feederData.sizeToKeep) {
-                delete feederData.sizeToKeep;
+    parseFeederData = (fData) => {
+        return fData.map(async feederData => {
+            if (!feederData.feedName) {
+                return;
             }
 
-            if (!this.includeExtra) {
-                delete feederData.feedName
+            const path = this.dataPaths && this.dataPaths instanceof Array ? resolve(...this.dataPaths, `${feederData.feedName}.json`) : resolve(`${feederData.feedName}.json`);
+            const { data, ...extra } = feederData || {};
+            const formattedData = {
+                obj: {
+                    ...data && !(data instanceof Array) && { ...data },
+                    ...this.includeExtra && { ...extra }
+                },
+                array: data instanceof Array ? data : null
             }
-            
+
             const canAccess = await access(path, constants.R_OK).then(() => true).catch(() => false);
             if (canAccess) {
                 const existing = (await readFile(path)).toString();
-                const parsed = JSON.parse(existing);
-                if (parsed && parsed.length >= toKeep) {
-                    parsed.pop();
+                if (formattedData?.array?.length > feederData.sizeToKeep) {
+                    formattedData.array.splice(feederData.sizeToKeep);
                 }
 
-                parsed.unshift(feederData);
+                let parsed = JSON.parse(existing);
+                if (parsed && parsed.length >= feederData.sizeToKeep && !formattedData.array) {
+                    parsed.pop();
+                }
+                
+                if (formattedData.obj && !formattedData.array) {
+                    parsed.unshift(formattedData.obj);
+                }
 
+                if (formattedData.array && parsed instanceof Array) {
+                    parsed = [...formattedData.array, ...parsed];
+                    if (parsed.length > feederData.sizeToKeep) {
+                        parsed.splice(feederData.sizeToKeep);
+                    }
+                }
+                
                 await writeFile(path, JSON.stringify(parsed, null, 2));
                 return;
             }
 
-            await writeFile(path, JSON.stringify([feederData], null, 2));
+            await writeFile(path, JSON.stringify(formattedData.array ? formattedData.array : [formattedData.obj], null, 2));
         })
     }
 
