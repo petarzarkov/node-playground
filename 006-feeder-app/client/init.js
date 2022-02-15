@@ -2,9 +2,12 @@ const menu = document.getElementById('menu-container');
 const header = document.getElementById("header1");
 const content = document.getElementById('content');
 const store = {};
-const routes = ["logins", "users", "pictures", "verbose"]
+const routes = ["randomUser", "randomMoji"]
 
-function addSubItem(parent, data, key) {
+const isImage = (val) => typeof(val) === "string" && val.startsWith("http") && (val.endsWith(".jpg") || val.endsWith(".png") || val.startsWith("https://cdn"));
+const formatImg = (val) => `<img src=${val} style="cursor: pointer;">`;
+
+function addSubItem(parent, data) {
     try {
         const contentSubItem = document.createElement("div");
         contentSubItem.setAttribute('class', 'content-sub-item');
@@ -12,13 +15,29 @@ function addSubItem(parent, data, key) {
         s.style = "overflow: auto;";
         const subItemParsedContent = Object.entries(data);
         s.innerHTML = subItemParsedContent.map(sip => {
-            if (key === "pictures" && typeof(sip[1]) === "string" && sip[1].startsWith("http")) {
+            if (isImage(sip[1])) {
                 return `<img src=${sip[1]} style="cursor: pointer;">`;
             }
-            if (key === "verbose" && typeof(sip[1]) === "object" && sip[0] === "picture") {
-                return Object.entries(data["picture"]).map(pc => `<img src=${pc[1]} style="cursor: pointer;">`).join().replace(/,/g, "");
+
+            if (typeof(sip[1]) === "object" && !(sip[1] instanceof Array)) {
+                return Object.entries(sip[1]).map((sipDeep) => {
+                    const [key, value] = sipDeep;
+                    if (isImage(value)) {
+                        return `<img src=${value} style="cursor: pointer;">`;
+                    }
+
+                    if (typeof(value) === "object" && !(value instanceof Array)) {
+                        return Object.values(value).map(vv => {
+                            if (isImage(vv)) {
+                                return formatImg(vv);
+                            }
+
+                            return `<p>${key}: ${typeof(value) === "object" ? `<pre><code>${JSON.stringify(value)}</code></pre>` : value}</p>`;
+                        }).join().replace(/,/g, "");
+                    }
+                }).join().replace(/,/g, "");
             }
-            return `<p>${sip[0]}: ${typeof(sip[1]) === "object" ? JSON.stringify(sip[1]) : sip[1]}</p>`;
+            return `<p>${sip[0]}: ${typeof(sip[1]) === "object" ? `<pre><code>${JSON.stringify(sip[1])}</code></pre>` : sip[1]}</p>`;
         }).join().replace(/,/g, "");
 
         contentSubItem.appendChild(s);
@@ -73,7 +92,7 @@ const init = async () => {
                     subItem.setAttribute('class', 'content-item');
                     subItem.setAttribute('id', uniqueKey);
                     append(content, subItem);
-                    addSubItem(subItem, sub, key);
+                    addSubItem(subItem, sub);
                 }
             });
 
@@ -88,8 +107,8 @@ const init = async () => {
 }
 
 init().then(() => {
-    const picturesHeaderButton = document.getElementById("pictures");
-    picturesHeaderButton.click();
+    const someBtn = document.getElementById("randomMoji");
+    someBtn.click();
 });
 
 // Update store on 10 seconds

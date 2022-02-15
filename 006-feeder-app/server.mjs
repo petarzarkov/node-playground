@@ -1,13 +1,14 @@
 import { createServer } from "http";
 import { createReadStream, readFileSync } from "fs";
 import { resolve } from "path";
-import { Feeders } from "./feeders.mjs";
+import { Feeders } from "../004-scrape/feeders.mjs";
 import { requests } from "./info.mjs";
 
 const config = {
     host: "localhost",
     port: 3015,
-    serverDir: process.cwd()
+    serverDir: process.cwd(),
+    dataPath: "data"
 };
 
 const server = createServer((req, res) => {
@@ -29,12 +30,10 @@ const server = createServer((req, res) => {
             res.end(readFileSync(clientPath).toString());
             return;
         }
-        const path = resolve(resolve(), `data${url}.json`);
+        const path = resolve(resolve(), `${config.dataPath}${url}.json`);
         switch (url) {
-            case "/verbose":
-            case "/logins":
-            case "/pictures":
-            case "/users":
+            case "/randomMoji":
+            case "/randomUser":
                 res.writeHead(200, { "Content-Type": "application/json" });
                 res.end(readFileSync(path).toString());
                 break
@@ -59,7 +58,9 @@ server.listen(config.port, config.host, () => {
     const feeds = new Feeders({
         requests: requests,
         feederInterval: 7000,
-        collectionInterval: 8000
+        collectionInterval: 8000,
+        dataPaths: [config.dataPath],
+        includeExtra: false
     });
     feeds.startFeeders();
 });

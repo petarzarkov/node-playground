@@ -15,7 +15,7 @@ export const req = async ({ url, parser = "text", method = "GET", payload, timeo
 
         const res = await req[parser]();
         return {
-            ...parser === "text" ? { text: res } : { ...res },
+            ...parser === "text" ? { text: res } : { result: res },
             elapsed: elapsed(),
             status: req.status || 200
         }

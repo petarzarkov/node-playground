@@ -1,3 +1,7 @@
+:root {
+  --color-primary: rgb(24, 94, 84);
+}
+
 html {
   height: 100vh;
   background-color: #2d3436;
@@ -24,7 +28,7 @@ p {
 .menu-container {
   margin: 5px;
   text-align: center;
-  background: rgb(235 89 103);
+  background: var(--color-primary);
   border-radius: 5px;
 }
 
@@ -36,7 +40,7 @@ p {
 }
 
 h1 {
-  color: rgb(235 89 103);
+  color: var(--color-primary);
   font-family: 'Cookie', cursive;
   font-size: 35px;
   font-weight: bold;
@@ -44,10 +48,10 @@ h1 {
   line-height: 1;
   text-align: center;
   text-shadow:
-  -1px -1px 0 #c55d5d,
-  -2px -2px 0 #af5151,
-  -3px -3px 0 #8a3b3b,
-  -30px 20px 40px #49030363;
+  -1px -1px 0 #8f8d8d,
+  -2px -2px 0 #5f5d5d,
+  -3px -3px 0 #2b2a2a,
+  -30px 20px 40px #18181863;
 }
 
 .content {
@@ -63,8 +67,8 @@ h1 {
 }
 
 .content-sub-item {
-  border-top: thin solid #af5151;
-  border-bottom: thin solid #af5151;
+  border-top: thin solid var(--color-primary);
+  border-bottom: thin solid var(--color-primary);
   background: #000000a6;
   color: #eee;
   text-align: center;
@@ -117,6 +121,6 @@ a.buttons:hover {
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #af5151;
+  background: var(--color-primary);
   cursor: auto;
 }

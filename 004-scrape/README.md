@@ -5,4 +5,4 @@
 - only available in ES modules
 - need node >= 17.5.0
 - *.mjs
-- run `node --experimental-fetch scrape.mjs`
+- run `node --experimental-fetch --no-warnings scrape.mjs`
